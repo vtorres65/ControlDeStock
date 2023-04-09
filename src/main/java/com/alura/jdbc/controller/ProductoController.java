@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.alura.jdbc.factory2.ConnectionFactory;
 import com.alura.jdbc.dao.ProductoDAO;
-import com.alura.jdbc.factory.ConnectionFactory;
 import com.alura.jdbc.modelo.Categoria;
 import com.alura.jdbc.modelo.Producto;
 
@@ -16,22 +16,39 @@ public class ProductoController {
     private ProductoDAO productoDao;
     
     public ProductoController() {
-        var factory = new ConnectionFactory();
+        var factory = new com.alura.jdbc.factory.ConnectionFactory();
         this.productoDao = new ProductoDAO(factory.recuperaConexion());
     }
 
-    public int modificar(String nombre, String descripcion, Integer cantidad, Integer id) {
-        return productoDao.modificar(nombre, descripcion, cantidad, id);
+    public int modificar(String nombre, String descripcion, Integer cantidad, Integer id) throws SQLException {
+        ConnectionFactory factory = new ConnectionFactory();
+        Connection con = new ConnectionFactory().recuperaConexion();
+
+        Statement statement = con.createStatement();
+        statement.execute("UPDATE PRODUCTO SET "
+                + " NOMBRE = '" + nombre + "'"
+                + ", DESCRIPCION = '" + descripcion + "'"
+                + ", CANTIDAD = " + cantidad
+                + "WHERE ID = " + id);
+        int updateCount = statement.getUpdateCount();
+
+        con.close();
+
+        return updateCount;
     }
 
-    public int eliminar(Integer id) {
-        return productoDao.eliminar(id);
+    public int eliminar(Integer id) throws SQLException {
+        Connection con = new ConnectionFactory().recuperaConexion();
+
+        Statement statement = con.createStatement();
+
+        statement.execute("DELETE FROM PRODUCTO WHERE ID = " + id);
+
+        return statement.getUpdateCount();
     }
 
     public List<Map<String, String>> listar() throws SQLException {
-        Connection con = DriverManager.getConnection(
-                "jdbc:mysql://localhost/control_de_stock?useTimeZone=true&serverTimeZone=UTC",
-                "root", "123456789");
+        Connection con = new ConnectionFactory().recuperaConexion();
 
         Statement statement = con.createStatement();
 
@@ -55,9 +72,22 @@ public class ProductoController {
         return resultado;
     }
 
-    public void guardar(Producto producto, Integer categoriaId) {
-        producto.setCategoriaId(categoriaId);
-        productoDao.guardar(producto);
+    public void guardar(Map<String, String> producto) throws SQLException {
+        Connection con = new ConnectionFactory().recuperaConexion();
+
+        Statement statement = con.createStatement();
+
+        statement.execute("INSERT INTO PRODUCTO(nombre, descripcion, cantidad)"
+        + " VALUES('" + producto.get("NOMBRE") + "','"
+        + producto.get("DESCRIPCION") + "',"
+        + producto.get("CANTIDAD") + ")", Statement.RETURN_GENERATED_KEYS);
+        
+        ResultSet resultSet = statement.getGeneratedKeys();
+        
+        while (resultSet.next()){
+            System.out.println(String.format(
+                    "Fue insertado el producto de ID %d",resultSet.getInt(1)));
+        }
     }
 
     public List<Producto> listar(Categoria categoria) {
