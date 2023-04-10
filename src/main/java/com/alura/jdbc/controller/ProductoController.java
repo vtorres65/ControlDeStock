@@ -24,12 +24,18 @@ public class ProductoController {
         ConnectionFactory factory = new ConnectionFactory();
         Connection con = new ConnectionFactory().recuperaConexion();
 
-        Statement statement = con.createStatement();
-        statement.execute("UPDATE PRODUCTO SET "
-                + " NOMBRE = '" + nombre + "'"
-                + ", DESCRIPCION = '" + descripcion + "'"
-                + ", CANTIDAD = " + cantidad
-                + "WHERE ID = " + id);
+        prepareStatement statement = con.prepareStatement("UPDATE PRODUCTO SET "
+                + " NOMBRE = ?"
+                + ", DESCRIPCION = ?"
+                + ", CANTIDAD = ?"
+                + "WHERE ID = ?");
+        statement.setString(1, nombre);
+        statement.setString(2, descripcion);
+        statement.setInt(3, cantidad);
+        statement.setInt(4, id);
+
+        statement.execute();
+
         int updateCount = statement.getUpdateCount();
 
         con.close();
@@ -40,11 +46,16 @@ public class ProductoController {
     public int eliminar(Integer id) throws SQLException {
         Connection con = new ConnectionFactory().recuperaConexion();
 
-        Statement statement = con.createStatement();
+        PreparedStatement statement = con.prepareStatement("DELETE FROM PRODUCTO WHERE ID = ?");
+        statement.setInt(1, id);
 
-        statement.execute("DELETE FROM PRODUCTO WHERE ID = " + id);
+        statement.execute();
 
-        return statement.getUpdateCount();
+        int updateCount = statement.getUpdateCount();
+
+        con.close():;
+
+        return updateCount;
     }
 
     public List<Map<String, String>> listar() throws SQLException {
@@ -73,17 +84,39 @@ public class ProductoController {
     }
 
     public void guardar(Map<String, String> producto) throws SQLException {
-        Connection con = new ConnectionFactory().recuperaConexion();
+        String nombre = producto.get("NOMBRE")
+        String descripcion = producto.get("DESCRIPCION");
+        Integer cantidad = Integer.valueOf(producto.get("CANTIDAD"));
+        Integer maximoCantidad = 50;
 
-        Statement statement = con.createStatement();
+        ConnectionFactory factory = new ConnectionFactory();
+        Connection con = factory.recuperaConexion();
+        con.setAutoCommit(false);
 
-        statement.execute("INSERT INTO PRODUCTO(nombre, descripcion, cantidad)"
-        + " VALUES('" + producto.get("NOMBRE") + "','"
-        + producto.get("DESCRIPCION") + "',"
-        + producto.get("CANTIDAD") + ")", Statement.RETURN_GENERATED_KEYS);
-        
+        PreparedStatement statement = con.prepareStatement("INSERT INTO PRODUCTO(nombre, descripcion, cantidad)"
+        + " VALUES(?, ?, ?)", Statement.RETURN_GENERATED_KEYS);
+
+        do {
+            int cantidadParaGuardar = Math.min(cantidad, maximoCantidad);
+
+            ejecutaRegistro(nombre, descripcion, cantidadParaGuardar, statement);
+            cantidad -= maximoCantidad;
+        }while (cantidad > 0);
+
+
+        con.close();
+    }
+
+    private static void ejecutaRegistro(String nombre, String descripcion, Integer cantidad, PreparedStatement statement)
+            throw SQLException {
+        statement.setString(1, nombre);
+        statement.setString(2, descripcion);
+        statement.setInt(3, cantidad);
+
+        statement.execute();
+
         ResultSet resultSet = statement.getGeneratedKeys();
-        
+
         while (resultSet.next()){
             System.out.println(String.format(
                     "Fue insertado el producto de ID %d",resultSet.getInt(1)));
