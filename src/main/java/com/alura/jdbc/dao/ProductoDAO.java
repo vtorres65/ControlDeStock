@@ -54,8 +54,12 @@ public class ProductoDAO {
         List<Producto> resultado = new ArrayList<>();
 
         try {
+            var querySelect = "SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO";
+
+            System.out.println(querySelect);
+
             final PreparedStatement statement = con
-                    .prepareStatement("SELECT ID, NOMBRE, DESCRIPCION, CANTIDAD FROM PRODUCTO");
+                    .prepareStatement(querySelect);
     
             try (statement) {
                 statement.execute();
@@ -121,7 +125,7 @@ public class ProductoDAO {
         }
     }
 
-    public List<Producto> listar(Categoria categoria) {
+    public List<Producto> listar(Integer categoriaId) {
         List<Producto> resultado = new ArrayList<>();
 
         try {
@@ -133,7 +137,7 @@ public class ProductoDAO {
                     sql);
     
             try (statement) {
-                statement.setInt(1, categoria.getId());
+                statement.setInt(1, categoriaId);
                 statement.execute();
     
                 final ResultSet resultSet = statement.getResultSet();

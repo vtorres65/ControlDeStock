@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.factory2.ConnectionFactory;
 
 public class PruebaDelete {
 

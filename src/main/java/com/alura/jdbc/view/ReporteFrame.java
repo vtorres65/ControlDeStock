@@ -1,12 +1,14 @@
 package com.alura.jdbc.view;
 
 import java.awt.Container;
+import java.sql.SQLException;
 
 import javax.swing.JFrame;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 import com.alura.jdbc.controller.CategoriaController;
+import com.alura.jdbc.controller.ProductoController;
 
 public class ReporteFrame extends JFrame {
 
@@ -16,8 +18,9 @@ public class ReporteFrame extends JFrame {
     private DefaultTableModel modelo;
 
     private CategoriaController categoriaController;
+    private ProductoController productoController;
     
-    public ReporteFrame(ControlDeStockFrame controlDeStockFrame) {
+    public ReporteFrame(ControlDeStockFrame controlDeStockFrame) throws SQLException {
         super("Reporte de produtos del stock");
 
         this.categoriaController = new CategoriaController();
@@ -47,7 +50,7 @@ public class ReporteFrame extends JFrame {
         categorias.forEach(categoria -> {
             modelo.addRow(new Object[] { categoria });
             
-            var productos = categoria.getProductos();
+            var productos = this.productoController.listar(categoria);
             
             productos.forEach(producto -> modelo.addRow(new Object[] {
                     "",

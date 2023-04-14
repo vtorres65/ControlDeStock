@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.SQLException;
 
 import com.alura.jdbc.factory.ConnectionFactory;
+import com.alura.jdbc.factory2.ConnectionFactory;
 
 public class PruebaConexion {
 
